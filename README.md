@@ -1,183 +1,183 @@
 # BondokWeb3 ERC-721
 
-عقد ذكي بسيط لإنشاء NFTs متوافقة مع معيار **ERC-721** على شبكة EVM. يسمح العقد لأي عنوان بعمل mint لرمز جديد، مع تمرير رابط metadata مخصص لكل Token.
+A minimal smart contract for creating NFTs compatible with the **ERC-721** standard on EVM-compatible networks. The contract allows any address to mint a new token and provide a custom metadata URI for that token.
 
-> **حالة المشروع:** نموذج تعليمي (minimal educational example)، وليس مجموعة NFT جاهزة للإطلاق التجاري أو عقدًا مدققًا أمنيًا.
+> **Project status:** This is a minimal educational example. It is not an audited contract or a production-ready NFT collection.
 
-## المحتويات
+## Contents
 
-- [نظرة سريعة](#نظرة-سريعة)
-- [مكونات المشروع](#مكونات-المشروع)
-- [المواصفات الحالية](#المواصفات-الحالية)
-- [متطلبات التشغيل](#متطلبات-التشغيل)
-- [النشر باستخدام Remix](#النشر-باستخدام-remix)
-- [الاستخدام](#الاستخدام)
-- [صيغة Metadata](#صيغة-metadata)
-- [التكامل مع JavaScript و ethers](#التكامل-مع-javascript-و-ethers)
-- [تدفق العمل](#تدفق-العمل)
-- [اعتبارات الأمان والقيود](#اعتبارات-الأمان-والقيود)
-- [تطوير نسخة production](#تطوير-نسخة-production)
-- [الاختبار](#الاختبار)
-- [الترخيص](#الترخيص)
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Current Specifications](#current-specifications)
+- [Requirements](#requirements)
+- [Deploying with Remix](#deploying-with-remix)
+- [Usage](#usage)
+- [Metadata Format](#metadata-format)
+- [JavaScript and ethers Integration](#javascript-and-ethers-integration)
+- [Workflow](#workflow)
+- [Security Considerations and Limitations](#security-considerations-and-limitations)
+- [Preparing a Production Version](#preparing-a-production-version)
+- [Testing](#testing)
+- [License](#license)
 
-## نظرة سريعة
+## Overview
 
-العقد الموجود في [`BondokWeb3.sol`](./BondokWeb3.sol) يرث من:
+The contract in [`BondokWeb3.sol`](./BondokWeb3.sol) inherits from:
 
-- `ERC721`: التطبيق الأساسي لمعيار NFT.
-- `ERC721URIStorage`: حفظ `tokenURI` منفصل لكل Token.
+- `ERC721`: OpenZeppelin's core implementation of the NFT standard.
+- `ERC721URIStorage`: support for storing a separate `tokenURI` for each token.
 
-إعدادات المجموعة:
+Collection settings:
 
-| العنصر | القيمة |
+| Item | Value |
 | --- | --- |
-| اسم المجموعة | `Bondok Web3` |
-| الرمز (Symbol) | `BW3` |
-| أول Token ID | `0` |
-| طريقة الـ mint | عامة، بدون صلاحيات أو رسوم مخصصة |
-| URI | يحدده صاحب عملية الـ mint |
-| التخزين | on-chain للـ URI فقط؛ الـ metadata والصورة خارج السلسلة |
-| الترخيص المعلن في Solidity | MIT |
+| Collection name | `Bondok Web3` |
+| Symbol | `BW3` |
+| First token ID | `0` |
+| Minting | Public, with no custom access control or fee |
+| URI | Provided by the minter |
+| Storage | Only the URI is stored on-chain; metadata and images are off-chain |
+| Solidity license declaration | MIT |
 
-## مكونات المشروع
+## Project Structure
 
 ```text
 .
-├── BondokWeb3.sol     # العقد الذكي
-├── nft-metadata.json   # مثال على NFT metadata
-└── README.md          # توثيق المشروع
+├── BondokWeb3.sol     # Smart contract
+├── nft-metadata.json   # Example NFT metadata
+└── README.md          # Project documentation
 ```
 
 ### `BondokWeb3.sol`
 
-يحتوي العقد على متغير عداد خاص:
+The contract contains a private counter:
 
 ```solidity
 uint256 private _tokenId;
 ```
 
-وتبدأ قيمته من `0` تلقائيًا. عند استدعاء `mintNFT`:
+Solidity initializes this value to `0`. Each time `mintNFT` is called, the contract:
 
-1. يأخذ العقد قيمة العداد الحالية كـ Token ID.
-2. ينشئ Token جديدًا لصالح `msg.sender`.
-3. يحفظ قيمة `jsonUri` كـ `tokenURI` لهذا الـ Token.
-4. يزيد العداد بمقدار واحد.
-5. يعيد Token ID الناتج.
+1. Uses the current counter value as the new token ID.
+2. Mints the token to `msg.sender`.
+3. Stores the supplied `jsonUri` as the token's `tokenURI`.
+4. Increments the counter by one.
+5. Returns the newly created token ID.
 
 ### `nft-metadata.json`
 
-ملف JSON تجريبي يوضح شكل metadata الشائع في أسواق NFT، ويحتوي على:
+This is an example of the JSON metadata commonly used by NFT marketplaces. It includes:
 
 - `name`
 - `description`
 - `image`
 - `attributes`
 
-وجود الملف داخل المستودع لا يعني أنه يُرفع تلقائيًا إلى IPFS أو يُستخدم تلقائيًا عند تنفيذ `mintNFT`. يجب رفعه إلى خدمة استضافة metadata، ثم تمرير رابط الملف إلى الدالة.
+Keeping this file in the repository does not automatically upload it to IPFS or use it during minting. The JSON file must be hosted separately, and its URI must then be passed to `mintNFT`.
 
-## المواصفات الحالية
+## Current Specifications
 
-### الدالة `mintNFT`
+### `mintNFT`
 
 ```solidity
 function mintNFT(string memory jsonUri) public returns (uint256)
 ```
 
-| المعامل | الوصف |
+| Parameter | Description |
 | --- | --- |
-| `jsonUri` | رابط metadata الخاصة بالـ NFT، مثل `ipfs://...` أو رابط HTTPS |
-| القيمة المعادة | Token ID الجديد |
-| المستفيد | العنوان الذي نفذ المعاملة (`msg.sender`) |
-| الرسوم | لا توجد رسوم مخصصة؛ يلزم فقط دفع gas للشبكة |
-| الصلاحيات | أي عنوان يمكنه الاستدعاء |
+| `jsonUri` | The NFT metadata URI, such as `ipfs://...` or an HTTPS URL |
+| Return value | The newly created token ID |
+| Recipient | The address that sends the transaction (`msg.sender`) |
+| Fee | No custom fee; the caller only pays network gas |
+| Permissions | Any address can call the function |
 
-### دوال ERC-721 الموروثة
+### Inherited ERC-721 Functions
 
-بما أن العقد يرث من OpenZeppelin، فهو يوفر وظائف ERC-721 القياسية مثل:
+Because the contract inherits from OpenZeppelin, it exposes standard ERC-721 functionality, including:
 
-- `ownerOf(tokenId)` لمعرفة المالك.
-- `balanceOf(owner)` لمعرفة عدد الـ NFTs المملوكة.
-- `tokenURI(tokenId)` للحصول على رابط metadata.
-- `approve(to, tokenId)` و `getApproved(tokenId)`.
-- `setApprovalForAll(operator, approved)` و `isApprovedForAll(owner, operator)`.
+- `ownerOf(tokenId)` to read the current owner.
+- `balanceOf(owner)` to read an owner's token balance.
+- `tokenURI(tokenId)` to read the metadata URI.
+- `approve(to, tokenId)` and `getApproved(tokenId)`.
+- `setApprovalForAll(operator, approved)` and `isApprovedForAll(owner, operator)`.
 - `transferFrom(from, to, tokenId)`.
 - `safeTransferFrom(from, to, tokenId)`.
-- `supportsInterface(interfaceId)` لاكتشاف الواجهات المدعومة.
+- `supportsInterface(interfaceId)` for interface detection.
 
-## متطلبات التشغيل
+## Requirements
 
-- محفظة متوافقة مع EVM، مثل MetaMask، عند النشر أو التفاعل من الواجهة.
-- Compiler متوافق مع:
+- An EVM-compatible wallet, such as MetaMask, for deployment and interaction.
+- A compatible Solidity compiler:
 
   ```text
-  Solidity >= 0.8.31 و < 0.9.0
+  Solidity >= 0.8.31 and < 0.9.0
   ```
 
-- مكتبات OpenZeppelin Contracts.
-- عملة الشبكة لدفع gas.
-- خدمة لاستضافة metadata والصور، ويفضل IPFS أو Arweave للإنتاج.
+- OpenZeppelin Contracts.
+- The network's native currency to pay gas.
+- A service for hosting metadata and images. IPFS or Arweave is recommended for production.
 
-العقد الحالي يستورد OpenZeppelin مباشرة من GitHub باستخدام روابط بعيدة. هذا مناسب للتجربة السريعة، لكنه ليس الخيار الأفضل لإصدارات production؛ راجع [تطوير نسخة production](#تطوير-نسخة-production).
+The current contract imports OpenZeppelin directly from GitHub using remote URLs. This is convenient for a quick experiment, but it is not ideal for a reproducible production build. See [Preparing a Production Version](#preparing-a-production-version).
 
-## النشر باستخدام Remix
+## Deploying with Remix
 
-هذه هي الطريقة الأسرع لتجربة العقد:
+Remix is the fastest way to try the contract:
 
-1. افتح [Remix IDE](https://remix.ethereum.org/).
-2. أنشئ ملفًا باسم `BondokWeb3.sol` والصق محتوى العقد، أو ارفع الملف من هذا المستودع.
-3. افتح تبويب **Solidity Compiler**.
-4. اختر Compiler بإصدار `0.8.31` أو إصدارًا أحدث ضمن نطاق `0.8.x` المتوافق مع `^0.8.31`.
-5. فعّل خيار **Auto compile** أو اضغط **Compile BondokWeb3.sol**.
-6. انتقل إلى **Deploy & Run Transactions**.
-7. اختر البيئة المناسبة:
-   - `Remix VM` للتجارب المحلية السريعة.
-   - `Injected Provider - MetaMask` للنشر على testnet أو mainnet.
-8. اختر العقد `BondokWeb3` ثم اضغط **Deploy**.
-9. وافق على المعاملة من المحفظة.
-10. احتفظ بعنوان العقد المنشور؛ ستحتاجه للتفاعل معه من أي تطبيق أو مستكشف بلوكتشين.
+1. Open [Remix IDE](https://remix.ethereum.org/).
+2. Create a file named `BondokWeb3.sol` and paste in the contract, or upload the file from this repository.
+3. Open the **Solidity Compiler** tab.
+4. Select compiler version `0.8.31` or a newer compatible `0.8.x` version that satisfies `^0.8.31`.
+5. Enable **Auto compile**, or click **Compile BondokWeb3.sol**.
+6. Open **Deploy & Run Transactions**.
+7. Select the environment you want:
+   - `Remix VM` for quick local experiments.
+   - `Injected Provider - MetaMask` for a testnet or mainnet deployment.
+8. Select `BondokWeb3` and click **Deploy**.
+9. Confirm the transaction in your wallet.
+10. Save the deployed contract address. You will need it to interact with the contract from an application or block explorer.
 
-> قبل النشر على شبكة حقيقية، تأكد من الشبكة والحساب والـ gas، وراجع التحذيرات التي يعرضها Remix. لا تستخدم mainnet للاختبار الأول.
+> Before deploying to a live network, verify the selected network, wallet account, and gas settings. Test on a testnet first and review all Remix warnings.
 
-## الاستخدام
+## Usage
 
-### عمل Mint جديد
+### Minting a New NFT
 
-بعد نشر العقد:
+After deploying the contract:
 
-1. جهّز ملف metadata بصيغة JSON.
-2. ارفع الملف والصورة إلى IPFS أو خدمة موثوقة.
-3. احصل على رابط JSON، ويفضل أن يكون بصيغة:
+1. Prepare a metadata file in JSON format.
+2. Upload the JSON file and its image to IPFS or another reliable storage service.
+3. Obtain the JSON URI, preferably in this format:
 
    ```text
    ipfs://<metadata-cid>
    ```
 
-4. استدعِ `mintNFT` مع رابط JSON.
-5. بعد تأكيد المعاملة، سيصبح الـ NFT مملوكًا للعنوان الذي نفذ المعاملة.
-6. استدعِ `tokenURI(tokenId)` للتحقق من الرابط المحفوظ.
+4. Call `mintNFT` with the JSON URI.
+5. Wait for the transaction to be confirmed. The NFT will belong to the address that sent the transaction.
+6. Call `tokenURI(tokenId)` to verify the stored URI.
 
-مثال:
+Example:
 
 ```text
 mintNFT("ipfs://bafybe.../metadata.json")
 ```
 
-إذا كان هذا أول mint ناجح، فسيكون الـ Token ID الناتج `0`. والـ mint التالي سيكون `1`، وهكذا.
+If this is the first successful mint, the returned token ID will be `0`. The next successful mint will be `1`, and so on.
 
-### قراءة بيانات Token
+### Reading Token Data
 
-بعد معرفة Token ID:
+After obtaining a token ID:
 
 ```text
-ownerOf(0)    -> عنوان المالك الحالي
-tokenURI(0)   -> رابط metadata المحفوظ
+ownerOf(0)    -> current owner address
+tokenURI(0)   -> stored metadata URI
 ```
 
-يمكن استخدام مستكشف الشبكة لقراءة هذه الدوال من تبويب **Read Contract**، أو استدعاؤها من تطبيق JavaScript.
+You can use a block explorer's **Read Contract** tab to call these functions, or call them from a JavaScript application.
 
-## صيغة Metadata
+## Metadata Format
 
-يحتوي [`nft-metadata.json`](./nft-metadata.json) على مثال مبسط:
+[`nft-metadata.json`](./nft-metadata.json) contains a simple example:
 
 ```json
 {
@@ -197,19 +197,19 @@ tokenURI(0)   -> رابط metadata المحفوظ
 }
 ```
 
-إرشادات مهمة:
+Important guidelines:
 
-- استخدم `ipfs://` أو `ar://` بدل روابط gateway المركزية عندما يكون ذلك ممكنًا.
-- يجب أن يشير `jsonUri` إلى **ملف JSON**، وليس إلى رابط الصورة مباشرة.
-- يجب أن يشير الحقل `image` إلى الصورة نفسها.
-- تحقق من صحة JSON قبل رفعه.
-- تأكد من تطابق اسم الملف والـ CID والرابط الذي ستمرره إلى `mintNFT`.
-- محتوى IPFS ثابت عند استخدام CID، لكن gateway المستخدم للوصول إليه قد يختلف.
-- في الملف الحالي، رابط `image` هو رابط HTTPS إلى Pinata gateway. يمكن استبداله بصيغة `ipfs://...` لزيادة قابلية النقل بين الأسواق.
+- Prefer `ipfs://` or `ar://` URIs over centralized gateway URLs whenever possible.
+- `jsonUri` must point to the **metadata JSON file**, not directly to the image.
+- The `image` field should point to the image itself.
+- Validate the JSON before uploading it.
+- Make sure the filename, CID, and URI passed to `mintNFT` all match.
+- IPFS content is content-addressed when using a CID, but the gateway used to access it can vary.
+- The current metadata file uses an HTTPS Pinata gateway URL in its `image` field. It can be replaced with an `ipfs://...` URI for better portability between marketplaces.
 
-## التكامل مع JavaScript و ethers
+## JavaScript and ethers Integration
 
-بعد تثبيت `ethers` وتوفير عنوان العقد وABI، يمكن تنفيذ mint بهذا الشكل:
+After installing `ethers` and providing the contract address and ABI, you can mint as follows:
 
 ```js
 import { ethers } from "ethers";
@@ -237,13 +237,13 @@ console.log("Mint transaction:", receipt.hash);
 console.log("Metadata URI:", await contract.tokenURI(0));
 ```
 
-ملاحظات:
+Notes:
 
-- قيمة `returns (uint256)` موجودة في ABI، لكن نتيجة الدالة لا تظهر عادةً كقيمة مباشرة من transaction في الواجهة؛ للحصول على Token ID قبل الإرسال يمكن استخدام `staticCall`، أو تتبع أحداث ERC-721 في الـ receipt.
-- بعد عمليات mint متعددة لا تفترض أن Token ID هو `0`؛ اقرأ الحدث أو احسبه حسب الحالة المعروفة للعقد.
-- استخدم عنوان العقد وشبكة RPC الصحيحة، ولا تضع مفاتيح خاصة داخل كود الواجهة أو المستودع.
+- The Solidity function declares `returns (uint256)`, but a transaction's return value is not normally exposed directly to a frontend. To obtain the token ID before sending, use `staticCall`, or read the ERC-721 `Transfer` event from the receipt.
+- Do not assume that every mint has token ID `0`. Read the event or derive the ID from the contract state.
+- Use the correct contract address and RPC network. Never place private keys or secrets in frontend code or in the repository.
 
-مثال لقراءة Token ID المتوقع قبل الإرسال باستخدام ethers v6:
+Example of reading the expected token ID before sending the transaction with ethers v6:
 
 ```js
 const nextTokenId = await contract.mintNFT.staticCall(metadataUri);
@@ -253,86 +253,86 @@ await transaction.wait();
 console.log("Minted token:", nextTokenId.toString());
 ```
 
-## تدفق العمل
+## Workflow
 
 ```text
-إنشاء metadata والصورة
-          │
-          ▼
-رفع الملفات إلى IPFS / Arweave
-          │
-          ▼
-الحصول على رابط metadata JSON
-          │
-          ▼
-المستخدم يستدعي mintNFT(jsonUri)
-          │
-          ▼
-إنشاء Token ID وتسليمه إلى msg.sender
-          │
-          ▼
-حفظ tokenURI وربطه بالـ NFT
-          │
-          ▼
-السوق أو التطبيق يقرأ metadata ويعرض الصورة
+Create metadata and an image
+            │
+            ▼
+Upload files to IPFS / Arweave
+            │
+            ▼
+Obtain the metadata JSON URI
+            │
+            ▼
+The user calls mintNFT(jsonUri)
+            │
+            ▼
+A token ID is created and assigned to msg.sender
+            │
+            ▼
+The tokenURI is stored for the NFT
+            │
+            ▼
+The marketplace or application reads the metadata and displays the image
 ```
 
-## اعتبارات الأمان والقيود
+## Security Considerations and Limitations
 
-هذا العقد بسيط ومفيد للتعلم، لكنه يحتوي على قرارات يجب فهمها قبل استخدامه في مشروع فعلي:
+This contract is intentionally simple and useful for learning, but the following design decisions must be understood before using it in a real project:
 
-1. **الـ mint متاح للجميع:** لا يوجد owner أو allowlist أو توقيع whitelist. أي عنوان يستطيع إنشاء عدد غير محدود من NFTs.
-2. **لا يوجد سعر mint:** الدالة ليست `payable` ولا تجمع ETH أو أي عملة. المستخدم يدفع gas فقط.
-3. **لا يوجد حد أقصى للإصدار:** لا توجد `maxSupply` أو آلية إيقاف (`pause`).
-4. **لا توجد royalties:** العقد لا يطبق EIP-2981.
-5. **الرابط يحدده المستخدم:** لا يوجد تحقق من أن `jsonUri` رابط صالح أو أنه يشير إلى JSON. يمكن تمرير سلسلة فارغة أو رابط غير صالح.
-6. **الـ metadata خارج السلسلة:** العقد يحفظ URI فقط. فقدان ملف metadata أو الصورة من خدمة الاستضافة يؤثر على العرض.
-7. **الاستيراد غير مثبت على إصدار:** العقد يستورد فرع `master` من OpenZeppelin. أي تغير مستقبلي في المصدر البعيد قد يؤثر على إعادة البناء أو التوافق.
-8. **لا توجد اختبارات مرفقة:** يجب إضافة اختبارات unit وintegration قبل الاعتماد على العقد.
-9. **لا يوجد عقد upgradeable:** بعد النشر لا يمكن تحديث منطق العقد من خلال آلية proxy؛ لذلك يجب مراجعة الكود قبل النشر.
-10. **لا يوجد mint للمستلم بالنيابة:** الدالة تسك دائمًا إلى `msg.sender`. إذا احتجت mint إلى عنوان آخر، فهذه وظيفة مختلفة وتحتاج تصميمًا واختبارًا مناسبين.
+1. **Minting is public:** There is no owner, allowlist, or whitelist signature. Any address can mint an unlimited number of NFTs.
+2. **There is no mint price:** The function is not `payable` and does not collect ETH or another currency. The caller only pays gas.
+3. **There is no maximum supply:** The contract has no `maxSupply` or pause mechanism.
+4. **There are no royalties:** The contract does not implement EIP-2981.
+5. **The URI is user-supplied:** The contract does not verify that `jsonUri` is valid or points to JSON. An empty or invalid URI can be supplied.
+6. **Metadata is off-chain:** The contract stores only the URI. Losing the metadata or image from the hosting service can affect how the NFT is displayed.
+7. **The dependency import is not pinned:** The contract imports OpenZeppelin's `master` branch. Future changes to the remote source can affect reproducibility or compatibility.
+8. **No tests are included:** Unit and integration tests should be added before relying on the contract.
+9. **The contract is not upgradeable:** After deployment, its logic cannot be updated through a proxy mechanism. Review the code before deployment.
+10. **There is no delegated minting:** The function always mints to `msg.sender`. Minting to another address would require a different, carefully tested design.
 
-> هذه النقاط ليست أخطاء في نموذج التعلم نفسه، لكنها حدود مهمة يجب ألا تُخفى عند استخدامه في بيئة حقيقية.
+> These are not necessarily bugs in a learning example, but they are important constraints that should not be hidden when moving toward production use.
 
-## تطوير نسخة production
+## Preparing a Production Version
 
-قبل استخدام المشروع في production يُنصح بالآتي:
+Before using this project in production, consider the following:
 
-- تثبيت إصدار محدد من OpenZeppelin بدل الاستيراد من `master`.
-- استخدام dependency manager مثل npm/Hardhat أو Foundry.
-- تغيير الاستيرادات إلى نسخة محلية، مثل:
+- Pin OpenZeppelin to a specific version instead of importing from `master`.
+- Use a dependency manager such as npm with Hardhat, or Foundry.
+- Change the imports to a locally installed dependency, for example:
 
   ```solidity
   import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
   import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
   ```
 
-- تحديد سياسة واضحة للـ mint: سعر، حد أقصى، allowlist، أو صلاحية minter.
-- إضافة `Pausable` عند الحاجة إلى إيقاف الإصدار مؤقتًا.
-- إضافة events مخصصة فقط إذا كانت الواجهة تحتاج بيانات إضافية؛ عملية ERC-721 نفسها تطلق `Transfer` عند نجاح mint.
-- إضافة اختبارات تغطي mint، الترقيم، URI، التحويل، الصلاحيات، وحالات الفشل.
-- تشغيل static analysis وأدوات مثل Slither، ثم إجراء مراجعة أمنية مستقلة.
-- استخدام IPFS/Arweave وتثبيت الـ CIDs قبل mint.
-- التحقق من العقد المنشور على مستكشف الشبكة.
-- عدم وضع private keys أو secrets في repository أو frontend.
+- Define a clear minting policy: price, maximum supply, allowlist, or authorized minters.
+- Add `Pausable` if the project needs an emergency pause mechanism.
+- Add custom events only when the application needs additional information; ERC-721 already emits `Transfer` during a successful mint.
+- Add tests for minting, token numbering, URIs, transfers, approvals, and failure cases.
+- Run static analysis tools such as Slither and conduct an independent security review.
+- Use IPFS or Arweave and pin the CIDs before minting.
+- Verify the deployed contract on the relevant block explorer.
+- Never commit private keys or other secrets to the repository or frontend.
 
-## الاختبار
+## Testing
 
-لا توجد حاليًا بنية اختبار أو إعداد Hardhat/Foundry داخل المستودع. الحد الأدنى للاختبارات المقترحة:
+There is currently no Hardhat or Foundry test setup in the repository. At minimum, the following tests should be added:
 
-- نشر العقد والتحقق من الاسم `Bondok Web3` والرمز `BW3`.
-- التأكد من أن أول mint ينتج Token ID يساوي `0`.
-- التأكد من أن المالك الأول هو `msg.sender`.
-- التأكد من حفظ قيمة `jsonUri` عبر `tokenURI`.
-- تنفيذ mint ثانٍ والتحقق من أن Token ID يساوي `1`.
-- اختبار نقل NFT وعمليات approval الموروثة من ERC-721.
-- اختبار فشل `ownerOf` و`tokenURI` عند تمرير Token ID غير موجود.
-- اختبار أن فشل المعاملة لا يستهلك Token ID.
+- Deploy the contract and verify the name is `Bondok Web3` and the symbol is `BW3`.
+- Confirm that the first successful mint returns token ID `0`.
+- Confirm that the initial owner is `msg.sender`.
+- Confirm that `jsonUri` is returned by `tokenURI`.
+- Perform a second mint and verify that its token ID is `1`.
+- Test inherited ERC-721 transfers and approval operations.
+- Test that `ownerOf` and `tokenURI` revert for a nonexistent token ID.
+- Test that a reverted transaction does not consume a token ID.
 
-## الترخيص
+## License
 
-العقد يعلن عن ترخيص **MIT** في ترويسة `BondokWeb3.sol` عبر SPDX identifier. راجع أيضًا تراخيص تبعيات OpenZeppelin قبل إعادة التوزيع أو استخدام المشروع ضمن منتج تجاري.
+The contract declares the **MIT** license in the SPDX header of `BondokWeb3.sol`. Also review the licenses of OpenZeppelin and any other dependencies before redistributing or incorporating the project into a commercial product.
 
 ---
 
-صُنع هذا المستودع كنقطة بداية صغيرة لفهم ERC-721 وmetadata وعمليات mint على شبكات EVM.
+This repository is a small starting point for learning about ERC-721 tokens, NFT metadata, and minting on EVM-compatible networks.
