@@ -1,0 +1,42 @@
+{
+  "name": "breastcare-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BreastCare AI — clinical decision-support and patient-management platform for breast cancer awareness, risk assessment, nutrition support, treatment tracking and blockchain-based medical data integrity.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/shared",
+    "packages/contracts",
+    "apps/backend",
+    "apps/frontend"
+  ],
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "build": "npm run build -w @breastcare/shared && npm run build -w @breastcare/backend && npm run build -w @breastcare/frontend",
+    "build:contracts": "npm run compile -w @breastcare/contracts",
+    "build:shared": "npm run build -w @breastcare/shared",
+    "build:backend": "npm run build -w @breastcare/backend",
+    "build:frontend": "npm run build -w @breastcare/frontend",
+    "dev:backend": "npm run dev -w @breastcare/backend",
+    "dev:frontend": "npm run dev -w @breastcare/frontend",
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "chain": "npm run node -w @breastcare/contracts",
+    "deploy:local": "npm run deploy:local -w @breastcare/contracts",
+    "test": "npm run test -w @breastcare/shared && npm run test -w @breastcare/backend && npm run test -w @breastcare/contracts",
+    "test:contracts": "npm run test -w @breastcare/contracts",
+    "test:backend": "npm run test -w @breastcare/backend",
+    "test:shared": "npm run test -w @breastcare/shared",
+    "test:frontend": "npm run test -w @breastcare/frontend",
+    "typecheck": "npm run typecheck -w @breastcare/shared && npm run typecheck -w @breastcare/backend && npm run typecheck -w @breastcare/frontend",
+    "lint": "npm run lint --workspaces --if-present",
+    "seed": "npm run seed -w @breastcare/backend",
+    "db:init": "npm run db:init -w @breastcare/backend",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.6.3"
+  }
+}
