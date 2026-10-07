@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------ */
+/* Design tokens — a calm clinical palette, not a generic SaaS template */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+  :root {
+    --background: 160 30% 99%;
+    --foreground: 195 32% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 195 32% 12%;
+
+    --primary: 174 62% 26%;
+    --primary-foreground: 160 40% 98%;
+
+    --secondary: 174 24% 94%;
+    --secondary-foreground: 174 50% 18%;
+
+    --muted: 170 18% 95%;
+    --muted-foreground: 195 12% 42%;
+
+    --accent: 174 30% 92%;
+    --accent-foreground: 174 60% 16%;
+
+    --destructive: 350 68% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 32 92% 44%;
+    --warning-foreground: 32 96% 98%;
+
+    --success: 158 62% 32%;
+    --success-foreground: 158 60% 98%;
+
+    --border: 174 16% 88%;
+    --input: 174 16% 88%;
+    --ring: 174 62% 34%;
+
+    --sidebar: 190 34% 12%;
+    --sidebar-foreground: 174 22% 88%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 196 34% 7%;
+    --foreground: 170 20% 93%;
+
+    --card: 196 30% 10%;
+    --card-foreground: 170 20% 93%;
+
+    --primary: 172 52% 44%;
+    --primary-foreground: 196 40% 8%;
+
+    --secondary: 196 24% 16%;
+    --secondary-foreground: 170 22% 88%;
+
+    --muted: 196 24% 14%;
+    --muted-foreground: 174 12% 66%;
+
+    --accent: 172 34% 18%;
+    --accent-foreground: 170 40% 90%;
+
+    --destructive: 350 62% 56%;
+    --destructive-foreground: 196 40% 8%;
+
+    --warning: 34 88% 56%;
+    --warning-foreground: 196 40% 8%;
+
+    --success: 158 48% 44%;
+    --success-foreground: 196 40% 8%;
+
+    --border: 196 22% 20%;
+    --input: 196 22% 22%;
+    --ring: 172 52% 44%;
+
+    --sidebar: 196 36% 6%;
+    --sidebar-foreground: 170 18% 82%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Respect users who ask for less motion — this product avoids animation for its own sake. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  .clinical-shell {
+    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .hairline {
+    @apply border-border/80;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

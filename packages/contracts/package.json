@@ -1,0 +1,31 @@
+{
+  "name": "@breastcare/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BreastCare AI \u2014 on-chain integrity, consent, auditability and access-control contracts.",
+  "license": "MIT",
+  "scripts": {
+    "compile": "tsx scripts/compile.ts",
+    "pretest": "tsx scripts/compile.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "node": "hardhat node --hostname 0.0.0.0",
+    "deploy:local": "tsx scripts/deploy.ts --network localhost",
+    "deploy:hardhat": "tsx scripts/deploy.ts",
+    "deploy:sepolia": "tsx scripts/deploy.ts --network sepolia",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "hardhat clean && rm -rf artifacts cache deployments dist"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
+    "@openzeppelin/contracts": "^5.1.0",
+    "@types/node": "^22.9.0",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4",
+    "hardhat": "^2.22.17",
+    "solc": "0.8.24",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}
