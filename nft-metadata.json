@@ -1,0 +1,18 @@
+{
+    "name": "Bondok Web3 #1",
+    "description": "NFT for Bondok Web3 #2",
+    "image": "https://sapphire-fast-bobolink-38.mypinata.cloud/ipfs/bafybeiaaih6w7ulrj46nf5day5xhjfx6y2jb5l4odamqqpokjggyx46yli",
+
+    "attributes": [
+
+        {
+            "trait_type": "category",
+            "value": "Blockchain"
+        },
+        {
+            "trait_type": "level",
+            "value": "Beginner"
+        }
+
+    ]
+}
